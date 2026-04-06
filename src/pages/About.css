@@ -83,10 +83,9 @@
 }
 .about__mapsvg {
   width: 100%;
-  max-width: 480px;
-  height: auto;
-  display: block;
+  max-width: 600px;
   margin: 0 auto 1rem;
+  display: block;
 }
 .about__mapnote {
   font-size: 0.875rem;

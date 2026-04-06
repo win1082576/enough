@@ -4,9 +4,40 @@
   text-transform: uppercase;
   margin-bottom: 1rem;
 }
-.philo__title {
+/* Title row: title + number counter side by side */
+.philo__title-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 2rem;
   margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+.philo__title {
+  margin-bottom: 0;
   line-height: 1.2;
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Number counter */
+.philo__counter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  padding-bottom: 0.3rem;
+  flex-shrink: 0;
+}
+.philo__counter-num {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.philo__counter-unit {
+  font-size: 1rem;
+  color: var(--text-muted);
 }
 .philo__body {
   font-size: 1.15rem;
@@ -67,9 +98,45 @@
   line-height: 1.65;
 }
 
+/* Fade-in paragraphs */
+.philo__fade {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: philoFadeIn 0.7s ease-out forwards;
+}
+.philo__fade--1 { animation-delay: 0.2s; }
+.philo__fade--2 { animation-delay: 0.5s; }
+.philo__fade--3 { animation-delay: 0.8s; }
+.philo__fade--4 { animation-delay: 1.0s; }
+
+@keyframes philoFadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animated curve */
+.philo__curve-wrap {
+  margin: 2.5rem 0;
+  overflow: hidden;
+}
+.philo__curve-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.philo__curve-path {
+  stroke-dasharray: 1500;
+  stroke-dashoffset: 1500;
+  animation: drawCurve 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: 0.4s;
+}
+@keyframes drawCurve {
+  to { stroke-dashoffset: 0; }
+}
+
 @media (max-width: 768px) {
   .philo__principles {
     grid-template-columns: 1fr;
   }
   .philo__body { font-size: 1rem; }
+  .philo__title-row { gap: 1rem; }
 }

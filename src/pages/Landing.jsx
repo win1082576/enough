@@ -14,36 +14,10 @@ export default function Landing() {
           <div className="landing__en">ENOUGH</div>
         </div>
 
-        {/* Illustration: tapered wave line */}
+        {/* Illustration: butterfly + wave line */}
         <div className="landing__illustration" aria-hidden="true">
-
-          {/* Tapered wave line */}
-          <svg
-            className="landing__line-svg"
-            viewBox="0 0 1000 80"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <linearGradient id="lineAlpha" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%"   stopColor="white" stopOpacity="0" />
-                <stop offset="6%"   stopColor="white" stopOpacity="1" />
-                <stop offset="88%"  stopColor="white" stopOpacity="1" />
-                <stop offset="100%" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <mask id="lineMask">
-                <rect x="0" y="0" width="1000" height="80" fill="url(#lineAlpha)" />
-              </mask>
-            </defs>
-            <path
-              d="M 0,40 C 150,18 280,62 440,40 C 590,18 700,56 850,36 C 920,28 965,40 1000,40"
-              stroke="#1c1410"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              fill="none"
-              mask="url(#lineMask)"
-            />
-          </svg>
+          <img className="landing__blob-img" src="/蝴蝶標.png" alt="" />
+          <img className="landing__line-img" src="/曲線.png" alt="" />
         </div>
 
         <p className="landing__tagline">

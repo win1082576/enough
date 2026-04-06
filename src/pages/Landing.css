@@ -49,11 +49,25 @@
   margin-bottom: 1.25rem;
 }
 
-/* Tapered wave line */
-.landing__line-svg {
+/* Butterfly blob */
+.landing__blob-img {
+  width: 52%;
+  height: auto;
+  display: block;
+  margin-left: 8%;
+  margin-bottom: -10px;
+  filter: drop-shadow(0 4px 16px rgba(180,70,40,0.15));
+}
+
+/* Wave line */
+.landing__line-img {
   width: 100%;
   height: auto;
   display: block;
+}
+
+@media (max-width: 768px) {
+  .landing__blob-img { width: 65%; }
 }
 
 .landing__tagline {

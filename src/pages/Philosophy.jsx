@@ -1,4 +1,48 @@
+import { useState, useEffect, useRef } from 'react'
 import './Philosophy.css'
+
+function NumberCounter({ target = 1680 }) {
+  const [count, setCount] = useState(9999)
+  const ref = useRef(null)
+  const started = useRef(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true
+          const startVal = 9999
+          const totalSteps = 55
+          let step = 0
+
+          const tick = () => {
+            step++
+            const progress = step / totalSteps
+            const eased = 1 - Math.pow(1 - progress, 3)
+            const current = Math.round(startVal + (target - startVal) * eased)
+            setCount(current)
+            if (step < totalSteps) {
+              // fast at start, slow at end
+              const delay = step < 20 ? 18 : 28 + step * 2
+              setTimeout(tick, delay)
+            }
+          }
+          setTimeout(tick, 400)
+        }
+      },
+      { threshold: 0.5 }
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [target])
+
+  return (
+    <div className="philo__counter" ref={ref}>
+      <span className="philo__counter-num">{count.toLocaleString()}</span>
+      <span className="philo__counter-unit">萬</span>
+    </div>
+  )
+}
 
 export default function Philosophy() {
   return (
@@ -6,28 +50,46 @@ export default function Philosophy() {
       <div className="page-content">
         <div className="container-narrow">
           <p className="philo__eyebrow text-accent">理念</p>
-          <h1 className="philo__title">夠了，是一個數字，<br />也是一個決定。</h1>
+
+          <div className="philo__title-row">
+            <h1 className="philo__title">夠了，是一個數字，<br />也是一個決定。</h1>
+            <NumberCounter target={1680} />
+          </div>
 
           <div className="philo__body">
-            <p>
+            <p className="philo__fade philo__fade--1">
               大多數人花一生追求更多，卻從來沒有認真算過：自己究竟需要多少？
             </p>
 
             <div className="philo__divider" />
 
-            <p>
+            <p className="philo__fade philo__fade--2">
               「夠了」不是放棄，不是躺平。它是一道數學題——當你的資產複利速度超過你的生活需求，繼續用時間換薪水就成了一筆<em>虧本的交易</em>。
             </p>
 
             <div className="philo__divider" />
 
-            <p>
+            <p className="philo__fade philo__fade--3">
               這個模擬器存在的理由只有一個：<strong>幫你找到那條線。</strong>
             </p>
-            <p>
+            <p className="philo__fade philo__fade--4">
               跨過去之前，你需要知道數字。<br />
               跨過去之後，數字就不再重要了。
             </p>
+          </div>
+
+          {/* Animated curve: waves → flat */}
+          <div className="philo__curve-wrap" aria-hidden="true">
+            <svg className="philo__curve-svg" viewBox="0 0 900 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                className="philo__curve-path"
+                d="M 0,50 C 30,20 55,80 100,50 C 145,20 175,75 230,50 C 280,28 330,58 420,46 C 530,42 680,40 900,40"
+                stroke="var(--text-secondary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                fill="none"
+              />
+            </svg>
           </div>
 
           <div className="philo__quote">
