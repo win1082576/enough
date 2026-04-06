@@ -16,8 +16,8 @@ export default function Landing() {
 
         {/* Illustration: butterfly + wave line */}
         <div className="landing__illustration" aria-hidden="true">
-          <img className="landing__blob-img" src="/蝴蝶標.png" alt="" />
-          <img className="landing__line-img" src="/曲線.png" alt="" />
+          <img className="landing__blob-img" src="/butterfly.png" alt="" />
+          <img className="landing__line-img" src="/wave.png" alt="" />
         </div>
 
         <p className="landing__tagline">
