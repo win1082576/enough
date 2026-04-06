@@ -49,27 +49,6 @@
   margin-bottom: 1.25rem;
 }
 
-/* Butterfly blob */
-.landing__blob-img {
-  width: 52%;
-  height: auto;
-  display: block;
-  margin-left: 8%;
-  margin-bottom: -10px;
-  mix-blend-mode: multiply;
-}
-
-/* Wave line */
-.landing__line-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  mix-blend-mode: multiply;
-}
-
-@media (max-width: 768px) {
-  .landing__blob-img { width: 65%; }
-}
 
 .landing__tagline {
   font-size: clamp(0.95rem, 1.8vw, 1.1rem);

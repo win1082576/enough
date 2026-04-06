@@ -14,11 +14,6 @@ export default function Landing() {
           <div className="landing__en">ENOUGH</div>
         </div>
 
-        {/* Illustration: butterfly + wave line */}
-        <div className="landing__illustration" aria-hidden="true">
-          <img className="landing__blob-img" src="/butterfly.png" alt="" />
-          <img className="landing__line-img" src="/wave.png" alt="" />
-        </div>
 
         <p className="landing__tagline">
           你的資產，什麼時候可以讓你停下來？
