@@ -1,0 +1,146 @@
+.landing {
+  min-height: 100vh;
+}
+
+/* ===== Hero ===== */
+.landing__hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6rem 2rem 5rem;
+  overflow: hidden;
+}
+
+.landing__headline {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0.5rem;
+}
+.landing__zh {
+  font-size: clamp(4.5rem, 13vw, 9rem);
+  font-family: Georgia, serif;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.landing__en {
+  font-size: clamp(2.8rem, 9vw, 6rem);
+  font-family: Georgia, serif;
+  font-weight: 400;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  line-height: 1;
+  margin-top: 0.08em;
+}
+
+/* Illustration container */
+.landing__illustration {
+  position: relative;
+  z-index: 1;
+  width: min(88vw, 640px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+/* Tapered wave line */
+.landing__line-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.landing__tagline {
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  max-width: 340px;
+  line-height: 1.6;
+  z-index: 1;
+}
+
+.landing__cta {
+  font-size: 0.95rem;
+  padding: 0.8rem 2.25rem;
+  letter-spacing: 0.02em;
+  z-index: 1;
+}
+
+/* Scroll hint */
+.landing__scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text-muted);
+  opacity: 0.5;
+  animation: scrollHintFade 2s ease-in-out 2.5s both;
+}
+@keyframes scrollHintFade {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 0.5; transform: translateX(-50%) translateY(0); }
+}
+.landing__scroll-dot {
+  animation: scrollDot 2s ease-in-out infinite 3.5s;
+}
+@keyframes scrollDot {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50%       { transform: translateY(8px); opacity: 0.3; }
+}
+
+/* ===== Feature strips ===== */
+.landing__strips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  padding-top: 0;
+  padding-bottom: 6rem;
+}
+.landing__strip {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.landing__strip:hover {
+  border-color: rgba(201,100,66,0.3);
+  box-shadow: var(--shadow-md);
+}
+.landing__strip-icon {
+  font-size: 1.6rem;
+  color: var(--accent);
+  flex-shrink: 0;
+  width: 2.25rem;
+  text-align: center;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+.landing__strip h3 {
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+.landing__strip p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .landing__strips {
+    grid-template-columns: 1fr;
+    padding-bottom: 4rem;
+  }
+  .landing__strip {
+    padding: 1.25rem;
+  }
+}

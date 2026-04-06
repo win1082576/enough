@@ -1,0 +1,25 @@
+{
+  "name": "夠了 Enough",
+  "short_name": "夠了",
+  "description": "個人退休財務規劃工具，蒙地卡羅模擬 + 旅居地圖",
+  "theme_color": "#c96442",
+  "background_color": "#f5f1ec",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

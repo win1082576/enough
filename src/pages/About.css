@@ -1,0 +1,123 @@
+.about__bio {
+  font-size: 1.1rem;
+  line-height: 1.9;
+  color: var(--text-secondary);
+  margin-bottom: 3.5rem;
+}
+.about__bio p { margin-bottom: 1.25rem; }
+.about__bio p:nth-child(2) {
+  font-size: 1.3rem;
+  color: var(--text);
+  font-style: italic;
+}
+
+/* Timeline */
+.about__timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 3.5rem;
+  padding-left: 1rem;
+}
+.about__tl-line {
+  position: absolute;
+  top: 0.9rem;
+  left: 4.5rem;
+  width: 2px;
+  bottom: 0.9rem;
+  background: var(--border);
+  z-index: 0;
+}
+.about__tl-item {
+  display: grid;
+  grid-template-columns: 3.5rem 1.5rem 1fr;
+  align-items: flex-start;
+  gap: 0 0.75rem;
+  padding: 1rem 0;
+  position: relative;
+  z-index: 1;
+}
+.about__tl-year {
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  padding-top: 0.1rem;
+}
+.about__tl-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  border: 2px solid var(--bg);
+  outline: 1.5px solid var(--accent);
+}
+.about__tl-item:last-child .about__tl-dot {
+  background: var(--bg);
+  border-color: var(--border);
+  outline-color: var(--border);
+}
+.about__tl-label {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+.about__tl-note {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* World map */
+.about__mapwrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  background: var(--card);
+  margin-bottom: 3rem;
+  text-align: center;
+}
+.about__mapsvg {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  display: block;
+  margin: 0 auto 1rem;
+}
+.about__mapnote {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Tech section */
+.about__tech {
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+}
+.about__tech h3 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+.about__tech p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin-bottom: 1.25rem;
+}
+.about__tech strong { color: var(--text); }
+.about__tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

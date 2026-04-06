@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <filter id="paper" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+      <feBlend in="SourceGraphic" in2="grayNoise" mode="multiply" result="blend"/>
+      <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+    </filter>
+    <clipPath id="roundRect512">
+      <rect width="512" height="512" rx="112" ry="112"/>
+    </clipPath>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="#c96442"/>
+  <rect width="512" height="512" rx="112" fill="rgba(255,255,255,0.04)" filter="url(#paper)" clip-path="url(#roundRect512)"/>
+
+  <path
+    d="M 80,375
+       C 120,375 128,210 172,278
+       S 218,358 260,240
+       S 306,145 346,213
+       C 386,268 412,262 432,256"
+    fill="none"
+    stroke="white"
+    stroke-width="20"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.92"
+  />
+  <circle cx="432" cy="256" r="16" fill="white" opacity="0.92"/>
+</svg>
