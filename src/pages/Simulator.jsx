@@ -162,6 +162,90 @@ function computeStats(paths, years) {
 }
 
 // ============================================================
+// Feature 1: Retirement reverse calculator
+// ============================================================
+
+function findRetirementYear(currentAssets, annualExpense, annualSavings, targetRate, params, maxYears = 50) {
+  const r = (params.equityRatio / 100) * (params.equityMean / 100)
+          + (1 - params.equityRatio / 100) * (params.bondMean / 100)
+  for (let n = 0; n <= maxYears; n++) {
+    const projected = n === 0
+      ? currentAssets
+      : currentAssets * Math.pow(1 + r, n) + annualSavings * ((Math.pow(1 + r, n) - 1) / r)
+    const testParams = { ...params, currentAssets: projected }
+    const paths = runMonteCarlo(testParams, 500, 0)
+    const s = computeStats(paths, params.years)
+    if (s.successRate >= targetRate) {
+      return { yearsNeeded: n, projectedAssets: projected, actualRate: s.successRate, growthRate: r * 100 }
+    }
+  }
+  return null
+}
+
+// ============================================================
+// Feature 3: Asset allocation analysis
+// ============================================================
+
+const ASSET_PROFILES = [
+  { keywords: ['全球股票','VT','VXUS','全球'],              mean: 7,   std: 15, type: 'equity' },
+  { keywords: ['美股','SPY','QQQ','VOO','S&P','NASDAQ'],    mean: 8,   std: 16, type: 'equity' },
+  { keywords: ['台股','0050','台灣50','元大台灣'],           mean: 7,   std: 20, type: 'equity' },
+  { keywords: ['新興市場','EEM','VWO','新興'],               mean: 6,   std: 22, type: 'equity' },
+  { keywords: ['REITs','VNQ','房地產','不動產'],             mean: 6,   std: 18, type: 'equity' },
+  { keywords: ['高收益債','HYG','JNK','高收益'],             mean: 5,   std: 8,  type: 'bond'   },
+  { keywords: ['債券','BND','AGG','IEF','公債','國債'],      mean: 3,   std: 4,  type: 'bond'   },
+  { keywords: ['現金','貨幣市場','MMF','定存'],              mean: 1.5, std: 0.5, type: 'cash'  },
+]
+
+function matchAssetProfile(name) {
+  const n = name.toUpperCase()
+  for (const p of ASSET_PROFILES) {
+    if (p.keywords.some(k => n.includes(k.toUpperCase()))) return p
+  }
+  // default: treat as equity
+  return { mean: 7, std: 15, type: 'equity' }
+}
+
+function calcWeightedParams(holdings) {
+  let wMean = 0, wStd = 0, equityPct = 0
+  holdings.forEach(h => {
+    const p = matchAssetProfile(h.name)
+    const w = h.pct / 100
+    wMean += w * p.mean
+    wStd  += w * p.std
+    if (p.type === 'equity') equityPct += h.pct
+  })
+  return {
+    equityMean:  parseFloat(wMean.toFixed(1)),
+    equityStd:   parseFloat(wStd.toFixed(1)),
+    equityRatio: Math.round(equityPct),
+  }
+}
+
+function compressAndEncode(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const MAX = 1024
+      let { width, height } = img
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round(height * MAX / width); width = MAX }
+        else { width = Math.round(width * MAX / height); height = MAX }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width; canvas.height = height
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+      URL.revokeObjectURL(url)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+      resolve(dataUrl.split(',')[1])
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
+
+// ============================================================
 // Canvas Chart Components
 // ============================================================
 
@@ -398,6 +482,17 @@ export default function Simulator() {
   const [gkYear,  setGkYear]   = useState(1)
   const [sorrTest, setSorr]    = useState(false)
   const [inflSens, setInflSens] = useState(false)
+  const [yearDetail, setYearDetail] = useState(false)
+  // Feature 1: retirement reverse calculator
+  const [retireCalc, setRetireCalc] = useState({ currentAge: 40, annualSavings: 600000, targetRate: 90 })
+  const [retireResult, setRetireResult] = useState(null)
+  const [retireRunning, setRetireRunning] = useState(false)
+  // Feature 3: vision analysis
+  const [visionApiKey, setVisionApiKey] = useState(() => localStorage.getItem('enough_claude_key') || '')
+  const [visionFile, setVisionFile] = useState(null)
+  const [visionRunning, setVisionRunning] = useState(false)
+  const [visionResult, setVisionResult] = useState(null)
+  const [visionError, setVisionError] = useState('')
 
   // Persist params
   useEffect(() => {
@@ -417,6 +512,7 @@ export default function Simulator() {
   // Run simulation
   const runSim = useCallback(() => {
     setRunning(true)
+    setYearDetail(false)
     setTimeout(() => {
       try {
         const paths = runMonteCarlo(params, params.numRuns, sorrTest ? params.sorrYears : 0)
@@ -427,6 +523,103 @@ export default function Simulator() {
       }
     }, 30)
   }, [params, sorrTest])
+
+  const runRetireCalc = useCallback(() => {
+    setRetireRunning(true)
+    setRetireResult(null)
+    setTimeout(() => {
+      try {
+        const r = findRetirementYear(
+          params.currentAssets,
+          params.annualExpense,
+          retireCalc.annualSavings,
+          retireCalc.targetRate,
+          params
+        )
+        setRetireResult(r)
+      } finally {
+        setRetireRunning(false)
+      }
+    }, 30)
+  }, [params, retireCalc])
+
+  const analyzePortfolioImage = useCallback(async () => {
+    if (!visionFile || !visionApiKey) return
+    setVisionRunning(true)
+    setVisionError('')
+    setVisionResult(null)
+    try {
+      // Compress image via canvas
+      const base64 = await compressAndEncode(visionFile)
+      const mediaType = 'image/jpeg'
+
+      // Phase 1: identify holdings
+      const resp1 = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': visionApiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+              { type: 'text', text: `請分析這張投資帳戶截圖，列出所有資產持倉名稱與佔比百分比。
+只回覆 JSON，格式：{"holdings":[{"name":"資產名稱或代號","pct":數字}]}
+pct 為百分比數字，所有項目加總應接近100。若無法識別，回覆：{"error":"原因"}` }
+            ]
+          }]
+        })
+      })
+      const data1 = await resp1.json()
+      if (!resp1.ok) throw new Error(data1.error?.message || '識別失敗')
+      const text1 = data1.content?.[0]?.text || ''
+      const match = text1.match(/\{[\s\S]*\}/)
+      if (!match) throw new Error('無法解析回應格式')
+      const json1 = JSON.parse(match[0])
+      if (json1.error) throw new Error(json1.error)
+      if (!json1.holdings?.length) throw new Error('未識別到任何持倉')
+
+      const weighted = calcWeightedParams(json1.holdings)
+
+      // Phase 2: AI comment
+      const holdingsSummary = json1.holdings.map(h => `${h.name} ${h.pct.toFixed(1)}%`).join('、')
+      const resp2 = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': visionApiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 512,
+          messages: [{
+            role: 'user',
+            content: `我的投資組合：${holdingsSummary}。
+加權年化報酬約 ${weighted.equityMean}%，加權波動率約 ${weighted.equityStd}%，股票佔比 ${weighted.equityRatio}%。
+目前資產 ${(params.currentAssets/10000).toFixed(0)} 萬，年支出 ${(params.annualExpense/10000).toFixed(1)} 萬。
+請以繁體中文，用 150-200 字：1) 評價此配置的優缺點 2) 針對長期退休目標給出具體調整建議。語氣務實簡潔。`
+          }]
+        })
+      })
+      const data2 = await resp2.json()
+      if (!resp2.ok) throw new Error(data2.error?.message || 'AI 評價失敗')
+      const aiComment = data2.content?.[0]?.text || ''
+
+      setVisionResult({ holdings: json1.holdings, ...weighted, aiComment })
+    } catch (err) {
+      setVisionError(err.message || '分析失敗，請確認 API Key 正確且圖片清晰')
+    } finally {
+      setVisionRunning(false)
+    }
+  }, [visionFile, visionApiKey, params])
 
   // Save scenario
   const saveScenario = () => {
@@ -521,6 +714,81 @@ export default function Simulator() {
               </span>
               <span>{(fiGoal / 10000).toFixed(0)} 萬</span>
             </div>
+          </div>
+
+          {/* Feature 1: Retirement reverse calculator */}
+          <div className="sim__retire-card card">
+            <div className="sim__retire-header">
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1rem' }}>幾歲可以退？</h3>
+                <p className="text-muted" style={{ fontSize: '0.82rem', marginTop: '0.2rem' }}>
+                  以目前資產 + 每年儲蓄，試算何時能達到目標成功率
+                </p>
+              </div>
+            </div>
+            <div className="sim__retire-inputs">
+              <div className="sim__retire-field">
+                <label className="sim__retire-label">目前年齡</label>
+                <input
+                  type="number"
+                  className="sim__retire-input"
+                  value={retireCalc.currentAge}
+                  onChange={e => setRetireCalc(c => ({ ...c, currentAge: parseInt(e.target.value) || 0 }))}
+                  min="20" max="70"
+                />
+              </div>
+              <div className="sim__retire-field">
+                <label className="sim__retire-label">每年可儲蓄（元）</label>
+                <input
+                  type="number"
+                  className="sim__retire-input"
+                  value={retireCalc.annualSavings}
+                  onChange={e => setRetireCalc(c => ({ ...c, annualSavings: parseFloat(e.target.value) || 0 }))}
+                  step="100000"
+                />
+                <span className="sim__retire-hint">= {(retireCalc.annualSavings / 10000).toFixed(1)} 萬</span>
+              </div>
+              <div className="sim__retire-field">
+                <label className="sim__retire-label">目標成功率（%）</label>
+                <input
+                  type="number"
+                  className="sim__retire-input"
+                  value={retireCalc.targetRate}
+                  onChange={e => setRetireCalc(c => ({ ...c, targetRate: parseFloat(e.target.value) || 90 }))}
+                  min="50" max="99" step="5"
+                />
+              </div>
+            </div>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={runRetireCalc}
+              disabled={retireRunning}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              {retireRunning ? '計算中…' : '試算退休年份'}
+            </button>
+            {retireResult !== null && !retireRunning && (
+              retireResult
+                ? (
+                  <div className="sim__retire-result sim__retire-result--success">
+                    <div className="sim__retire-result-main">
+                      {retireResult.yearsNeeded === 0
+                        ? '現在就可以退休了！'
+                        : `預計 ${retireResult.yearsNeeded} 年後（${retireCalc.currentAge + retireResult.yearsNeeded} 歲）可以退休`}
+                    </div>
+                    <div className="sim__retire-result-sub">
+                      屆時資產約 {(retireResult.projectedAssets / 10000).toFixed(0)} 萬 ／
+                      模擬成功率 {retireResult.actualRate.toFixed(1)}% ／
+                      以加權年化報酬 {retireResult.growthRate.toFixed(1)}% 試算
+                    </div>
+                  </div>
+                ) : (
+                  <div className="sim__retire-result sim__retire-result--fail">
+                    <div className="sim__retire-result-main">50 年內估計無法達到目標成功率</div>
+                    <div className="sim__retire-result-sub">建議增加儲蓄、提高投資報酬，或降低目標成功率</div>
+                  </div>
+                )
+            )}
           </div>
 
           {/* Today's GK withdrawal card — always visible */}
@@ -621,6 +889,72 @@ export default function Simulator() {
                   <Field label={`通膨率 ${params.inflation}%`}>
                     <input type="range" min="0" max="6" step="0.5" value={params.inflation} onChange={set('inflation')} />
                   </Field>
+
+                  {/* Feature 3: Vision analysis */}
+                  <div className="sim__vision-wrap">
+                    <div className="sim__vision-divider">— 或上傳截圖自動帶入 —</div>
+                    <div className="sim__vision-key-row">
+                      <label className="sim__vision-key-label">Claude API Key</label>
+                      <input
+                        type="password"
+                        className="sim__vision-key-input"
+                        placeholder="sk-ant-..."
+                        value={visionApiKey}
+                        onChange={e => {
+                          setVisionApiKey(e.target.value)
+                          localStorage.setItem('enough_claude_key', e.target.value)
+                        }}
+                      />
+                      <span className="sim__vision-key-hint">僅存於本機瀏覽器</span>
+                    </div>
+                    <label className="sim__vision-upload-btn btn btn-ghost btn-sm">
+                      {visionFile ? `✓ ${visionFile.name}` : '上傳持倉截圖'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={e => { setVisionFile(e.target.files[0] || null); setVisionResult(null); setVisionError('') }}
+                      />
+                    </label>
+                    {visionFile && (
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={analyzePortfolioImage}
+                        disabled={visionRunning || !visionApiKey}
+                      >
+                        {visionRunning ? '分析中…' : '分析配置 + 取得 AI 建議'}
+                      </button>
+                    )}
+                    {visionError && <p className="sim__vision-error">{visionError}</p>}
+                    {visionResult && (
+                      <div className="sim__vision-result">
+                        <div className="sim__vision-result-title">識別持倉</div>
+                        {visionResult.holdings.map((h, i) => (
+                          <div key={i} className="sim__vision-holding">
+                            <span>{h.name}</span>
+                            <span>{h.pct.toFixed(1)}%</span>
+                          </div>
+                        ))}
+                        <div className="sim__vision-calc-row">
+                          加權報酬 {visionResult.equityMean}% ／ 波動 {visionResult.equityStd}% ／ 股票比 {visionResult.equityRatio}%
+                        </div>
+                        {visionResult.aiComment && (
+                          <div className="sim__vision-ai-comment">{visionResult.aiComment}</div>
+                        )}
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => setParams(p => ({
+                            ...p,
+                            equityMean:  visionResult.equityMean,
+                            equityStd:   visionResult.equityStd,
+                            equityRatio: visionResult.equityRatio,
+                          }))}
+                        >
+                          帶入模擬參數
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </Section>
 
                 <Section title="肥尾效應（黑天鵝）">
@@ -767,6 +1101,42 @@ export default function Simulator() {
                     <p className="sim__chart-caption text-muted">
                       實線：中位數（50%ile）　虛線：悲觀情境（10%ile）　陰影：10–90%ile 範圍
                     </p>
+                  </div>
+
+                  {/* Feature 2: Annual detail table */}
+                  <div className="sim__detail card">
+                    <div className="sim__detail-header">
+                      <h3>年度明細</h3>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setYearDetail(o => !o)}>
+                        {yearDetail ? '收起 ▲' : '展開明細 ▼'}
+                      </button>
+                    </div>
+                    {yearDetail && (
+                      <div className="sim__detail-table-wrap">
+                        <table className="sim__detail-table">
+                          <thead>
+                            <tr className="sim__detail-head">
+                              <th>年份</th>
+                              <th>中位數資產（萬）</th>
+                              <th>悲觀 P10（萬）</th>
+                              <th>年提領（萬）</th>
+                              <th>緩衝池（萬）</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Array.from({ length: params.years }, (_, i) => (
+                              <tr key={i} className={`sim__detail-row${i % 2 === 0 ? ' sim__detail-row--even' : ''}`}>
+                                <td>第 {i + 1} 年</td>
+                                <td>{((stats.yearlyMedianTotal[i]    || 0) / 10000).toFixed(1)}</td>
+                                <td>{((stats.yearlyP10Total[i]        || 0) / 10000).toFixed(1)}</td>
+                                <td>{((stats.yearlyMedianWithdraw[i]  || 0) / 10000).toFixed(1)}</td>
+                                <td>{((stats.yearlyMedianBuffer[i]    || 0) / 10000).toFixed(1)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
 
                   {/* Inflation sensitivity */}
