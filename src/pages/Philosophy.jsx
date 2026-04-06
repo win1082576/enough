@@ -52,7 +52,7 @@ export default function Philosophy() {
           <p className="philo__eyebrow text-accent">理念</p>
 
           <div className="philo__title-row">
-            <h1 className="philo__title">夠了，是一個數字，<br />也是一個決定。</h1>
+            <h1 className="philo__title">夠了，是一個數字，也是一個決定。</h1>
             <NumberCounter target={1680} />
           </div>
 

@@ -56,7 +56,7 @@
   display: block;
   margin-left: 8%;
   margin-bottom: -10px;
-  filter: drop-shadow(0 4px 16px rgba(180,70,40,0.15));
+  mix-blend-mode: multiply;
 }
 
 /* Wave line */
@@ -64,6 +64,7 @@
   width: 100%;
   height: auto;
   display: block;
+  mix-blend-mode: multiply;
 }
 
 @media (max-width: 768px) {
